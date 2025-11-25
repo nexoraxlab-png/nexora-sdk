@@ -1,0 +1,21 @@
+{
+  "name": "nexora-sdk-core",
+  "version": "1.0.0",
+  "description": "Minimal Nexora SDK server for Render",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "keywords": [
+    "nexora",
+    "sdk",
+    "affiliate",
+    "automation"
+  ],
+  "author": "Laila",
+  "license": "MIT",
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^4.21.0"
+  }
+}
