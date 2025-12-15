@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "Minimal Nexora SDK server for Render",
   "main": "server.js",
-  "scripts": {
+"type": "module"  "scripts": {
     "start": "node server.js"
   },
   "keywords": [
