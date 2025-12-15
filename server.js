@@ -2,7 +2,7 @@ import express from "express";
 import cors from "cors";
 
 const app = express();
-
+const jobs = new Map();
 /* =======================
    BASIC MIDDLEWARE
 ======================= */
@@ -18,6 +18,35 @@ app.get("/health", (req, res) => {
     service: "nexora-sdk-core",
     status: "alive",
     timestamp: new Date().toISOString()
+  });
+});app.get("/api/job/:job_id", (req, res) => {
+  const { job_id } = req.params;
+
+  if (!jobs.has(job_id)) {
+    return res.status(404).json({
+      success: false,
+      error: "JOB_NOT_FOUND"
+    });
+  }
+app.post("/api/generate-video", (req, res) => {
+  const job_id = "job_" + Date.now();
+
+  jobs.set(job_id, {
+    status: "queued",
+    created_at: new Date().toISOString(),
+    input: req.body,
+    video_url: null
+  });
+
+  return res.json({
+    success: true,
+    status: "queued",
+    job_id
+  });
+});
+  return res.json({
+    success: true,
+    job: jobs.get(job_id)
   });
 });
 // ====== JOB STORE (in-memory) ======
