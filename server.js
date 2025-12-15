@@ -1,65 +1,73 @@
-const express = require('express');
-const cors = require('cors');
+import express from "express";
+import cors from "cors";
 
 const app = express();
 
+/* =======================
+   BASIC MIDDLEWARE
+======================= */
 app.use(cors());
-app.use(express.json());
+app.use(express.json({ limit: "10mb" }));
 
-const PORT = process.env.PORT || 10000;
-const N8N_WEBHOOK_URL = process.env.n8n_webhook_url;
-
-// Health check
-app.get('/health', (req, res) => {
-  res.json({
-    status: 'ok',
-    service: 'nexora-sdk-core',
-    timestamp: new Date().toISOString(),
+/* =======================
+   HEALTH CHECK
+======================= */
+app.get("/health", (req, res) => {
+  res.status(200).json({
+    success: true,
+    service: "nexora-sdk-core",
+    status: "alive",
+    timestamp: new Date().toISOString()
   });
 });
 
-// صفحة رئيسية بسيطة
-app.get('/', (req, res) => {
-  res.send('Nexora SDK Core is running on Render!');
-});
-
-// API يرسل مباشرة إلى n8n
-app.post('/api/generate-video', async (req, res) => {
+/* =======================
+   GENERATE VIDEO (CORE)
+   FINAL – NO N8N – NO WEBHOOK
+======================= */
+app.post("/api/generate-video", async (req, res) => {
   try {
-    if (!N8N_WEBHOOK_URL) {
-      return res.status(500).json({
+    const payload = req.body;
+
+    if (!payload || Object.keys(payload).length === 0) {
+      return res.status(400).json({
         success: false,
-        error: 'n8n_webhook_url is not set in environment variables',
+        error: "EMPTY_REQUEST_BODY"
       });
     }
 
-    const payload = {
-      ...req.body,
-      source: 'nexora-sdk-core',
-      timestamp: new Date().toISOString(),
-    };
+    // Job ID ثابت وواضح
+    const job_id = `job_${Date.now()}`;
 
-    const response = await fetch(N8N_WEBHOOK_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload),
-    });
+    /**
+     * IMPORTANT:
+     * - Core لا يصنع الفيديو
+     * - Core لا ينادي أي webhook
+     * - Core لا يستعمل GPT
+     * - Core فقط يستقبل الطلب ويرجع Job
+     */
 
-    const text = await response.text();
-
-    res.json({
+    return res.status(200).json({
       success: true,
-      n8n_status: response.status,
-      n8n_response: text,
+      status: "queued",
+      job_id: job_id,
+      received: payload
     });
+
   } catch (error) {
-    res.status(500).json({
+    console.error("GENERATE VIDEO ERROR:", error);
+    return res.status(500).json({
       success: false,
-      error: error.message,
+      error: "INTERNAL_SERVER_ERROR"
     });
   }
 });
 
+/* =======================
+   SERVER START
+======================= */
+const PORT = process.env.PORT || 10000;
+
 app.listen(PORT, () => {
-  console.log(`Nexora SDK Core running on port ${PORT}`);
+  console.log(`✅ Nexora Core running on port ${PORT}`);
 });
